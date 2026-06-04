@@ -43,7 +43,7 @@ export default function Home() {
     <div className="min-h-screen bg-[#0d0d0d] text-white">
       <Header />
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-[1440px] mx-auto px-4 sm:px-6 py-6 lg:py-8">
         {error && (
           <div className="bg-[#ff00ff]/20 border-2 border-[#ff00ff] text-[#ff00ff] px-4 py-3 mb-6 relative" style={{ boxShadow: '4px 4px 0 #0d0d0d' }}>
             <div className="absolute -top-1 -left-1 w-2 h-2 bg-[#ff00ff]"></div>
@@ -52,19 +52,26 @@ export default function Home() {
           </div>
         )}
 
-        <div className="space-y-8">
-          <PromptInput onSubmit={handleGenerate} disabled={isGenerating} />
-          <ResultDisplay
-            imageUrl={generatedImage}
-            isLoading={isGenerating}
-            title={generatedImage ? 'GENERATED OUTPUT' : undefined}
-          />
-          {generatedImage && (
-            <div className="flex justify-center pt-4">
-              <DownloadButton imageUrl={generatedImage} />
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_390px] 2xl:grid-cols-[minmax(0,1fr)_430px] items-start">
+          <section className="min-w-0 space-y-5">
+            <PromptInput onSubmit={handleGenerate} disabled={isGenerating} />
+            <div className="space-y-4">
+              <ResultDisplay
+                imageUrl={generatedImage}
+                isLoading={isGenerating}
+                title={generatedImage ? 'CURRENT OUTPUT' : 'OUTPUT MONITOR'}
+              />
+              {generatedImage && (
+                <div className="flex justify-center sm:justify-end">
+                  <DownloadButton imageUrl={generatedImage} />
+                </div>
+              )}
             </div>
-          )}
-          <RecentGenerations refreshKey={recentRefreshKey} />
+          </section>
+
+          <aside className="min-w-0 xl:sticky xl:top-6">
+            <RecentGenerations refreshKey={recentRefreshKey} variant="rail" />
+          </aside>
         </div>
       </main>
 

@@ -10,12 +10,29 @@ export interface GenerateResponse {
   status: string;
   image_url?: string;
   message?: string;
+  generation?: GenerationRecord | null;
 }
 
 export interface CreditsResponse {
   credits: number;
   token_balance: number;
   subscription_tier: string;
+}
+
+export interface GenerationRecord {
+  id: string;
+  prompt: string;
+  image_path: string;
+  image_url: string;
+  model: string;
+  width: number;
+  height: number;
+  created_at: string;
+}
+
+export interface GenerationsResponse {
+  generations: GenerationRecord[];
+  message?: string;
 }
 
 export async function generatePixelArt(request: GenerateRequest): Promise<GenerateResponse> {
@@ -32,6 +49,19 @@ export async function generatePixelArt(request: GenerateRequest): Promise<Genera
     throw new Error(error.detail || 'Failed to generate image');
   }
   
+  return response.json();
+}
+
+export async function getRecentGenerations(limit: number = 12): Promise<GenerationsResponse> {
+  const response = await fetch(`/api/generations?limit=${limit}`, {
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to fetch generations' }));
+    throw new Error(error.message || 'Failed to fetch generations');
+  }
+
   return response.json();
 }
 

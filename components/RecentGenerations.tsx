@@ -1,0 +1,150 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { GenerationRecord, getRecentGenerations } from '@/lib/api';
+
+interface RecentGenerationsProps {
+  refreshKey?: number;
+}
+
+function formatGeneratedDate(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return 'JUST NOW';
+  }
+
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).toUpperCase();
+}
+
+export default function RecentGenerations({ refreshKey = 0 }: RecentGenerationsProps) {
+  const [generations, setGenerations] = useState<GenerationRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadGenerations() {
+      setIsLoading(true);
+      setMessage('');
+
+      try {
+        const response = await getRecentGenerations(12);
+
+        if (!isMounted) return;
+
+        setGenerations(response.generations);
+        setMessage(response.message || '');
+      } catch (error) {
+        if (!isMounted) return;
+
+        setGenerations([]);
+        setMessage(error instanceof Error ? error.message : 'Failed to load recent generations');
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    loadGenerations();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [refreshKey]);
+
+  return (
+    <section className="w-full pt-2">
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <div className="w-2 h-2 bg-[#39ff14]"></div>
+            <h2 className="text-[#39ff14] text-lg tracking-wide">RECENT GENERATIONS</h2>
+          </div>
+          <p className="text-[#4a4a4a] text-sm">
+            Latest saved outputs from the platform
+          </p>
+        </div>
+        <div className="text-[#00d4ff] text-xs pixel-font">
+          {generations.length.toString().padStart(2, '0')} SAVED
+        </div>
+      </div>
+
+      <div className="relative border-4 border-[#2d2d44] bg-[#0d0d0d] p-3">
+        <div className="absolute -top-1 -left-1 w-3 h-3 bg-[#00d4ff]"></div>
+        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-[#ff00ff]"></div>
+
+        {isLoading ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[...Array(4)].map((_, index) => (
+              <div
+                key={index}
+                className="h-48 bg-[#1a1a2e] border-2 border-[#2d2d44] animate-pulse"
+              />
+            ))}
+          </div>
+        ) : generations.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {generations.map((generation) => (
+              <a
+                key={generation.id}
+                href={generation.image_url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Open generation for ${generation.prompt}`}
+                className="group block bg-[#1a1a2e] border-2 border-[#2d2d44] hover:border-[#00d4ff] transition-all hover:translate-y-[-2px]"
+                style={{ boxShadow: '3px 3px 0 #0d0d0d' }}
+              >
+                <div className="aspect-square bg-[#0d0d0d] overflow-hidden scanlines">
+                  <img
+                    src={generation.image_url}
+                    alt={generation.prompt}
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    style={{ imageRendering: 'pixelated' }}
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-3">
+                  <p
+                    className="text-[#f8f8f8] text-sm leading-tight min-h-[2.5rem]"
+                    style={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {generation.prompt}
+                  </p>
+                  <div className="mt-3 flex items-center justify-between gap-2 text-[11px] text-[#4a4a4a]">
+                    <span>{generation.width}x{generation.height}</span>
+                    <span>{formatGeneratedDate(generation.created_at)}</span>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div className="min-h-44 flex flex-col items-center justify-center text-center px-4 bg-[#1a1a2e] scanlines">
+            <div className="w-16 h-16 border-4 border-dashed border-[#4a4a4a] flex items-center justify-center mb-4">
+              <div className="w-8 h-8 bg-[#2d2d44]"></div>
+            </div>
+            <p className="text-[#f8f8f8] text-lg tracking-wide">
+              NO SAVED OUTPUTS YET
+            </p>
+            <p className="text-[#4a4a4a] text-sm mt-2 max-w-md">
+              {message || 'Generated images will appear here after Supabase is configured and the first image is saved.'}
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}

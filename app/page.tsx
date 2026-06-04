@@ -5,12 +5,14 @@ import Header from '@/components/Header';
 import PromptInput from '@/components/PromptInput';
 import ResultDisplay from '@/components/ResultDisplay';
 import DownloadButton from '@/components/DownloadButton';
+import RecentGenerations from '@/components/RecentGenerations';
 import { generatePixelArt } from '@/lib/api';
 
 export default function Home() {
   const [generatedImage, setGeneratedImage] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string>('');
+  const [recentRefreshKey, setRecentRefreshKey] = useState(0);
 
   const handleGenerate = async (prompt: string) => {
     setIsGenerating(true);
@@ -21,8 +23,10 @@ export default function Home() {
       const response = await generatePixelArt({ prompt });
       if (response.image_url) {
         setGeneratedImage(response.image_url);
+        setRecentRefreshKey((key) => key + 1);
       } else if (response.status === 'complete') {
         setGeneratedImage(response.image_url || '');
+        setRecentRefreshKey((key) => key + 1);
       } else if (response.status === 'requires_api_key') {
         setError(response.message || 'AI generation requires an API key');
       } else {
@@ -60,6 +64,7 @@ export default function Home() {
               <DownloadButton imageUrl={generatedImage} />
             </div>
           )}
+          <RecentGenerations refreshKey={recentRefreshKey} />
         </div>
       </main>
 

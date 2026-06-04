@@ -5,6 +5,7 @@ import { GenerationRecord, getRecentGenerations } from '@/lib/api';
 
 interface RecentGenerationsProps {
   refreshKey?: number;
+  variant?: 'grid' | 'rail';
 }
 
 function formatGeneratedDate(value: string) {
@@ -22,10 +23,11 @@ function formatGeneratedDate(value: string) {
   }).toUpperCase();
 }
 
-export default function RecentGenerations({ refreshKey = 0 }: RecentGenerationsProps) {
+export default function RecentGenerations({ refreshKey = 0, variant = 'grid' }: RecentGenerationsProps) {
   const [generations, setGenerations] = useState<GenerationRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const isRail = variant === 'rail';
 
   useEffect(() => {
     let isMounted = true;
@@ -61,8 +63,8 @@ export default function RecentGenerations({ refreshKey = 0 }: RecentGenerationsP
   }, [refreshKey]);
 
   return (
-    <section className="w-full pt-2">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-4">
+    <section className="w-full">
+      <div className="flex items-end justify-between gap-3 mb-4">
         <div>
           <div className="flex items-center gap-2 mb-2">
             <div className="w-2 h-2 bg-[#39ff14]"></div>
@@ -77,21 +79,21 @@ export default function RecentGenerations({ refreshKey = 0 }: RecentGenerationsP
         </div>
       </div>
 
-      <div className="relative border-4 border-[#2d2d44] bg-[#0d0d0d] p-3">
+      <div className={`relative border-4 border-[#2d2d44] bg-[#0d0d0d] p-3 ${isRail ? 'xl:max-h-[calc(100vh-10rem)] xl:overflow-y-auto' : ''}`}>
         <div className="absolute -top-1 -left-1 w-3 h-3 bg-[#00d4ff]"></div>
         <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-[#ff00ff]"></div>
 
         {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[...Array(4)].map((_, index) => (
+          <div className={isRail ? 'space-y-3' : 'grid grid-cols-2 md:grid-cols-4 gap-3'}>
+            {[...Array(isRail ? 5 : 4)].map((_, index) => (
               <div
                 key={index}
-                className="h-48 bg-[#1a1a2e] border-2 border-[#2d2d44] animate-pulse"
+                className={`${isRail ? 'h-28' : 'h-48'} bg-[#1a1a2e] border-2 border-[#2d2d44] animate-pulse`}
               />
             ))}
           </div>
         ) : generations.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className={isRail ? 'space-y-3' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3'}>
             {generations.map((generation) => (
               <a
                 key={generation.id}
@@ -99,10 +101,10 @@ export default function RecentGenerations({ refreshKey = 0 }: RecentGenerationsP
                 target="_blank"
                 rel="noreferrer"
                 aria-label={`Open generation for ${generation.prompt}`}
-                className="group block bg-[#1a1a2e] border-2 border-[#2d2d44] hover:border-[#00d4ff] transition-all hover:translate-y-[-2px]"
+                className={`group bg-[#1a1a2e] border-2 border-[#2d2d44] hover:border-[#00d4ff] transition-all hover:translate-y-[-2px] ${isRail ? 'grid grid-cols-[88px_minmax(0,1fr)] min-h-[104px]' : 'block'}`}
                 style={{ boxShadow: '3px 3px 0 #0d0d0d' }}
               >
-                <div className="aspect-square bg-[#0d0d0d] overflow-hidden scanlines">
+                <div className={`${isRail ? 'w-[88px] h-full min-h-[100px]' : 'aspect-square'} bg-[#0d0d0d] overflow-hidden scanlines`}>
                   <img
                     src={generation.image_url}
                     alt={generation.prompt}
@@ -111,7 +113,7 @@ export default function RecentGenerations({ refreshKey = 0 }: RecentGenerationsP
                     loading="lazy"
                   />
                 </div>
-                <div className="p-3">
+                <div className={`p-3 min-w-0 ${isRail ? 'flex flex-col justify-between' : ''}`}>
                   <p
                     className="text-[#f8f8f8] text-sm leading-tight min-h-[2.5rem]"
                     style={{

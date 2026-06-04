@@ -20,7 +20,7 @@ export default function ResultDisplay({ imageUrl, isLoading, title }: ResultDisp
         <div className="absolute top-0 left-0 right-0 h-1 bg-[#6c5ce7]"></div>
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-[#ff00ff]"></div>
         
-        <div className="relative min-h-[320px] flex items-center justify-center bg-[#1a1a2e] overflow-hidden scanlines">
+        <div className="relative min-h-[340px] sm:min-h-[400px] lg:min-h-[460px] xl:min-h-[480px] flex items-center justify-center bg-[#1a1a2e] overflow-hidden scanlines">
           {isLoading ? (
             <div className="flex flex-col items-center gap-4">
               <div className="relative">
@@ -53,7 +53,7 @@ export default function ResultDisplay({ imageUrl, isLoading, title }: ResultDisp
               <img
                 src={imageUrl}
                 alt="Generated pixel art"
-                className="max-w-full max-h-[500px] object-contain"
+                className="max-w-full max-h-[460px] object-contain"
                 style={{ imageRendering: 'pixelated' }}
               />
             </div>

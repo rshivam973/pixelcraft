@@ -32,7 +32,18 @@ export interface GenerationRecord {
 
 export interface GenerationsResponse {
   generations: GenerationRecord[];
+  pagination: {
+    limit: number;
+    offset: number;
+    nextOffset: number | null;
+    hasMore: boolean;
+  };
   message?: string;
+}
+
+export interface GenerationsRequestOptions {
+  limit?: number;
+  offset?: number;
 }
 
 export async function generatePixelArt(request: GenerateRequest): Promise<GenerateResponse> {
@@ -52,8 +63,15 @@ export async function generatePixelArt(request: GenerateRequest): Promise<Genera
   return response.json();
 }
 
-export async function getRecentGenerations(limit: number = 12): Promise<GenerationsResponse> {
-  const response = await fetch(`/api/generations?limit=${limit}`, {
+export async function getRecentGenerations({
+  limit = 12,
+  offset = 0,
+}: GenerationsRequestOptions = {}): Promise<GenerationsResponse> {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+  });
+  const response = await fetch(`/api/generations?${params.toString()}`, {
     cache: 'no-store',
   });
 
